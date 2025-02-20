@@ -46,13 +46,14 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
+    needs: create-tag
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4    
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.version }}
+          tag_name: ${{ needs.get-next-tag.outputs.tag }}
           body: |
             See changelog for release notes.
             files: |
