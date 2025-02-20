@@ -1,0 +1,62 @@
+name: Create new version release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      # - ".github"
+      - "README.md"
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  get-next-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.get_next_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
+      
+      - name: Get next version
+        id: get_next_version
+        uses: thenativeweb/get-next-version@main
+      - name: Show the next version
+        run: |
+            echo ${{ steps.get_next_version.outputs.version }}
+            echo ${{ steps.get_next_version.outputs.hasNextVersion }}
+
+  create-tag:
+    needs: get-next-tag
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+    env:
+        TAG: ${{ needs.get-next-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create new tag
+        run: |
+            echo "Tagging $TAG"
+            git tag "$TAG"
+            git push origin --tag "$TAG"
+
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4    
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          body: |
+            See changelog for release notes.
+            files: |
+             zips/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
