@@ -14,7 +14,7 @@ Creates an OIDC enabled AWS role to be used via the [aws-actions/configure-aws-c
 
 - Updated to `allowed_role_actions` and `allowed_role_resources` can be made when assumed with this role.
 
-## setup
+## requirements
 
 The OIDC provider is pulled in via the below data block. Please ensure this exists as per [docs](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html).
 
