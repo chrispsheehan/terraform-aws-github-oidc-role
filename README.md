@@ -31,3 +31,47 @@ data "aws_iam_openid_connect_provider" "this" {
 ```
 
 ## usage
+
+```tf
+module "github-oidc-role" {
+  source  = "chrispsheehan/github-oidc-role/aws"
+  version = "0.0.3"
+
+  deploy_role_name = "your_deploy_role_name"
+  state_bucket     = "700011111111-eu-west-2-project-deploy-tfstate"
+  state_lock_table = "project-deploy-tf-lockid"
+  github_repo      = "chrisheehan/project"
+
+  allowed_role_actions = [
+    "s3:*"
+  ]
+  allowed_role_resources = ["*"]
+}
+```
+
+## github action
+
+```yaml
+name: Deploy Environment
+
+on:
+  workflow_call:
+
+# These permissions are needed to interact with GitHub's OIDC Token endpoint
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/your_deploy_role_name
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: deploy
+        run: terraform apply -auto-approve
+```
