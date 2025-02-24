@@ -4,7 +4,7 @@ Creates an OIDC enabled AWS role to be used via the [aws-actions/configure-aws-c
 
 - Branches take top priority—if a branch is allowed, it overrides everything else.
 
-- Environments serve as a fallback—**if a branch is not allowed, but the environment is**, the workflow runs.
+- Environments serve as a fallback—**if a branch is not allowed, but the environment is**, the workflow runs. *Deployment branches and tag* settings within github environment are inherited.
 
 - Tags can allow deployments from versioned releases if neither branch nor environment is explicitly allowed.
 
@@ -46,6 +46,15 @@ module "github-oidc-role" {
     "s3:*"
   ]
   allowed_role_resources = ["*"]
+
+  # explicit limit github actions to deploy run on main branch only
+  deploy_branches = ["main"]
+
+  # explicit limit actions run/triggered from tag
+  deploy_tags = ["*"]
+
+  # limit branches/tags etc set within github environment settings 
+  deploy_environments = ["dev", "prod"]
 }
 ```
 
