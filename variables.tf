@@ -32,7 +32,7 @@ variable "deploy_tags" {
 
 variable "deploy_environments" {
   type        = list(string)
-  description = "The github environments allowed to deploy with this role"
+  description = "The github environments allowed to deploy with this role - branches and tags inherited"
   default     = []
 }
 
