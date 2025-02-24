@@ -35,7 +35,6 @@ data "aws_iam_openid_connect_provider" "this" {
 ```tf
 module "github-oidc-role" {
   source  = "chrispsheehan/github-oidc-role/aws"
-  version = "0.0.3"
 
   deploy_role_name = "your_deploy_role_name"
   state_bucket     = "700011111111-eu-west-2-project-deploy-tfstate"
