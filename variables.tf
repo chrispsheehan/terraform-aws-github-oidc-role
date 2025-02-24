@@ -44,7 +44,7 @@ variable "allow_deployments" {
 
 variable "allowed_role_actions" {
   type        = list(string)
-  description = "The action(s) to be allowed i.e. [ dynamodb:* ]"
+  description = "The action(s) to be allowed i.e. [ 's3:*', 'dynamodb:*/' ]"
   default     = []
 }
 
