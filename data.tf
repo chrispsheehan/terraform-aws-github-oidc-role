@@ -1,7 +1,7 @@
-data "aws_caller_identity" "current" {}
+data "aws_caller_identity" "this" {}
 
 data "aws_iam_openid_connect_provider" "this" {
-  arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.oidc_domain}"
+  arn = "arn:aws:iam::${data.aws_caller_identity.this.account_id}:oidc-provider/${local.oidc_domain}"
 }
 
 data "aws_iam_policy_document" "assume_identity" {
@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "role_management" {
       aws_iam_policy.defined.arn,
       aws_iam_policy.assume_identity.arn,
       aws_iam_policy.state_management.arn,
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${local.role_management_policy_name}"
+      "arn:aws:iam::${data.aws_caller_identity.this.account_id}:policy/${local.role_management_policy_name}"
     ]
   }
 }

@@ -23,10 +23,10 @@ locals {
   oidc_domain = "token.actions.githubusercontent.com"
 }
 
-data "aws_caller_identity" "current" {}
+data "aws_caller_identity" "this" {}
 
 data "aws_iam_openid_connect_provider" "this" {
-  arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.oidc_domain}"
+  arn = "arn:aws:iam::${data.aws_caller_identity.this.account_id}:oidc-provider/${local.oidc_domain}"
 }
 ```
 
