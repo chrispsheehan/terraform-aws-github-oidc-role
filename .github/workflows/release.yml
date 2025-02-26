@@ -35,35 +35,37 @@ jobs:
           echo ${{ steps.get_next_version.outputs.version }}
           echo ${{ steps.get_next_version.outputs.hasNextVersion }}
 
-  # create-tag:
-  #   needs: get-next-tag
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     TAG: ${{ needs.get-next-tag.outputs.tag }}
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Create new tag
-  #       run: |
-  #         echo "Tagging $TAG"
-  #         git tag "$TAG"
-  #         git push origin --tag "$TAG"
+  create-tag:
+    needs: get-next-tag
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.get-next-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create new tag
+        run: |
+          echo "Tagging $TAG"
+          git tag "$TAG"
+          git push origin --tag "$TAG"
 
-  # get-commits:
-  #   needs: get-next-tag
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     commits: ${{ steps.commits.outputs.COMMITS }}
-  #   env:
-  #     TAG: ${{ needs.get-next-tag.outputs.tag }}
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Get commit messages
-  #       id: commits
-  #       run: |
-  #         COMMITS=$(git log ${TAG}..HEAD --pretty=format:"* %s")
-  #         echo "commits<<EOF" >> $GITHUB_OUTPUT
-  #         echo "$COMMITS" >> $GITHUB_OUTPUT
-  #         echo "EOF" >> $GITHUB_OUTPUT
+  get-commits:
+    needs: get-next-tag
+    runs-on: ubuntu-latest
+    outputs:
+      commits: ${{ steps.commits.outputs.COMMITS }}
+    env:
+      TAG: ${{ needs.get-next-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get commit messages
+        id: commits
+        run: |
+          COMMITS=$(git log ${TAG}..HEAD --pretty=format:"* %s")
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   # release:
   #   runs-on: ubuntu-latest
