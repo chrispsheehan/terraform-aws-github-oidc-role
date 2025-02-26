@@ -25,7 +25,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
+      # Only commits with types like fix:, feat:, or breaking changes (feat!: or commits including a BREAKING CHANGE note) will cause the version to increment.
       - name: Get next version
         id: get_next_version
         uses: thenativeweb/get-next-version@main
