@@ -52,7 +52,7 @@ jobs:
 
   create-tag:
     needs: get-next-tag
-    if: ${{ needs.get-next-tag.outputs.has-next-version }}
+    if: ${{ needs.get-next-tag.outputs.has-next-version == 'true' }}
     runs-on: ubuntu-latest
     env:
       TAG: ${{ needs.get-next-tag.outputs.tag }}
@@ -69,7 +69,7 @@ jobs:
       - get-next-tag
       - create-tag
       - get-current-tag
-    if: ${{ needs.get-next-tag.outputs.has-next-version }}
+    if: ${{ needs.get-next-tag.outputs.has-next-version == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       commits: ${{ steps.commits.outputs.COMMITS }}
@@ -94,7 +94,7 @@ jobs:
       - get-next-tag
       - create-tag
       - get-commits
-    if: ${{ needs.get-next-tag.outputs.has-next-version }}
+    if: ${{ needs.get-next-tag.outputs.has-next-version == 'true' }}
     permissions:
       contents: write
     steps:
