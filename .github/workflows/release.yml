@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - ".github"
-      - "README.md"
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
