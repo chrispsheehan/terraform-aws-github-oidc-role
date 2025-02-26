@@ -84,7 +84,7 @@ jobs:
           tag_name: ${{ needs.get-next-tag.outputs.tag }}
           body: |
             Release Notes:
-            ${{ needs.commits.outputs.commits }}
+            ${{ needs.get-commits.outputs.commits }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
