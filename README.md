@@ -109,7 +109,7 @@ remote_state {
 }
 
 terraform {
-  source = "tfr:///chrispsheehan/github-oidc-role/aws?version=0.0.4"
+  source = "tfr:///chrispsheehan/github-oidc-role/aws?version=0.2.1"
 }
 
 inputs = {
