@@ -1,24 +1,23 @@
-# terraform-aws-github-oidc-role
+# 🚀 terraform-aws-github-oidc-role
 
-Creates an OIDC enabled AWS role to be used via the [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials) github action.
+Creates an **OIDC-enabled AWS IAM role** to be used via the [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials) GitHub Action.
 
-- Branches take top priority—if a branch is allowed, it overrides everything else.
+## 🔐 Priority Logic
 
-- Environments serve as a fallback—**if a branch is not allowed, but the environment is**, the workflow runs. *Deployment branches and tag* settings within github environment are inherited.
+- 🥇 **Branches take top priority** — if a branch is allowed, it overrides everything else.
+- 🌱 **Environments are fallback** — if a branch is _not_ allowed, but the environment is, the workflow can run.
+- 🏷️ **Tags** enable deployments from versioned releases if neither branch nor environment is explicitly allowed.
+- ⚙️ **`allow_deployments`** acts as a global override — if enabled, _any_ workflow can assume the role.
+- 🔑 IAM permissions (`allowed_role_actions`, `allowed_role_resources`) control AWS access.
+- ✍️ IAM permissions can be updated when assuming the role dynamically.
 
-- Tags can allow deployments from versioned releases if neither branch nor environment is explicitly allowed.
+---
 
-- `allow_deployments` acts as a global override—if enabled, all workflows can assume the role.
+## 📋 Requirements
 
-- IAM role permissions (`allowed_role_actions` and `allowed_role_resources`) determine AWS access.
+The OIDC provider must exist in your AWS account. Terraform will pull it in using the following data block:
 
-- Updated to `allowed_role_actions` and `allowed_role_resources` can be made when assumed with this role.
-
-## requirements
-
-The OIDC provider is pulled in via the below data block. Please ensure this exists as per [docs](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html).
-
-```tf
+```hcl
 locals {
   oidc_domain = "token.actions.githubusercontent.com"
 }
@@ -30,11 +29,13 @@ data "aws_iam_openid_connect_provider" "this" {
 }
 ```
 
-## usage
+---
 
-### terraform
+## ⚙️ Usage
 
-```tf
+### ▶️ Terraform Module
+
+```hcl
 module "github-oidc-role" {
   source  = "chrispsheehan/github-oidc-role/aws"
 
@@ -43,23 +44,18 @@ module "github-oidc-role" {
   state_lock_table = "project-deploy-tf-lockid"
   github_repo      = "chrisheehan/project"
 
-  allowed_role_actions = [
-    "s3:*"
-  ]
+  allowed_role_actions   = ["s3:*"]
   allowed_role_resources = ["*"]
 
-  # explicit limit github actions to deploy run on main branch only
-  deploy_branches = ["main"]
-
-  # explicit limit actions run/triggered from tag
-  deploy_tags = ["*"]
-
-  # limit branches/tags etc set within github environment settings 
+  deploy_branches     = ["main"]
+  deploy_tags         = ["*"]
   deploy_environments = ["dev", "prod"]
 }
 ```
 
-### terragrunt
+---
+
+### 🧱 Terragrunt Configuration
 
 ```hcl
 locals {
@@ -113,10 +109,9 @@ terraform {
 }
 
 inputs = {
-  aws_region       = local.aws_region
-  state_bucket     = local.state_bucket
-  state_lock_table = local.state_lock_table
-
+  aws_region           = local.aws_region
+  state_bucket         = local.state_bucket
+  state_lock_table     = local.state_lock_table
   allowed_role_actions = ["s3:*"]
   deploy_branches      = ["main"]
   deploy_role_name     = local.deploy_role_name
@@ -124,7 +119,9 @@ inputs = {
 }
 ```
 
-## github action
+---
+
+## 🤖 GitHub Action Example
 
 ```yaml
 name: Deploy Environment
@@ -132,10 +129,9 @@ name: Deploy Environment
 on:
   workflow_call:
 
-# These permissions are needed to interact with GitHub's OIDC Token endpoint
 permissions:
-    id-token: write
-    contents: read
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
