@@ -55,6 +55,17 @@ module "github-oidc-role" {
 }
 ```
 
+### ▶️ More Terraform Module Examples
+
+Additional working examples live in `examples/` so they can be validated in CI:
+
+- `examples/dynamodb`
+- `examples/s3-lockfile`
+- `examples/environment-dynamodb`
+- `examples/tag-only`
+- `examples/deployments`
+- `examples/combined`
+
 ---
 
 ### 🧱 Terragrunt Configuration
@@ -218,10 +229,14 @@ jobs:
 
 ## 🧪 Testing
 
-This repo validates the root module and both locking-mode examples in CI:
+This repo validates the root module and all example configurations in CI:
 
 - `examples/dynamodb`
 - `examples/s3-lockfile`
+- `examples/environment-dynamodb`
+- `examples/tag-only`
+- `examples/deployments`
+- `examples/combined`
 
 It also runs `terraform test` on Terraform `1.7+` with overridden AWS data sources, so the module gets a plan-based behavior test path without real AWS credentials. This does not change the module's runtime Terraform requirement for consumers.
 

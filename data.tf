@@ -82,7 +82,7 @@ data "aws_dynamodb_table" "tf_lock_table" {
 
   lifecycle {
     precondition {
-      condition     = var.state_lock_table != null && trim(var.state_lock_table) != ""
+      condition     = var.state_lock_table != null && trimspace(var.state_lock_table) != ""
       error_message = "State lock table must be set when state locking mode is \"dynamodb\"."
     }
   }

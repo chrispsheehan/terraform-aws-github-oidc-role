@@ -35,6 +35,10 @@ jobs:
           - .
           - examples/dynamodb
           - examples/s3-lockfile
+          - examples/environment-dynamodb
+          - examples/tag-only
+          - examples/deployments
+          - examples/combined
     defaults:
       run:
         working-directory: ${{ matrix.working_directory }}
