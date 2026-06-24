@@ -1,6 +1,24 @@
 # 🚀 terraform-aws-github-oidc-role
 
-Creates an **OIDC-enabled AWS IAM role** to be used via the [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials) GitHub Action.
+Creates an **OIDC-enabled AWS IAM role** for GitHub Actions that can also **update its own OIDC configuration and attached policies**.
+
+The important behavior of this module is not just that it creates a role for CI. It creates a role that can:
+
+- assume itself from GitHub Actions via OIDC
+- read and update its own trust policy
+- update its own attached IAM policies
+- update the Terraform state resources needed to apply the change
+
+That means you can change the module inputs in your repo, push the change, and let the current OIDC role apply the next version of itself.
+
+Examples of self-managed changes this supports:
+
+- add or remove allowed branches
+- add or remove allowed tags
+- add or remove allowed GitHub environments
+- change `allow_deployments`
+- broaden or narrow `allowed_role_actions`
+- broaden or narrow `allowed_role_resources`
 
 ## 🔐 Priority Logic
 
@@ -11,11 +29,31 @@ Creates an **OIDC-enabled AWS IAM role** to be used via the [aws-actions/configu
 - 🔑 IAM permissions (`allowed_role_actions`, `allowed_role_resources`) control AWS access.
 - ✍️ IAM permissions can be updated when assuming the role dynamically.
 
+## 🔁 Self-Updating Flow
+
+Typical lifecycle:
+
+1. Bootstrap the role once from an existing AWS-admin path.
+2. Configure GitHub Actions to assume that role.
+3. Change this module's inputs in the repo.
+4. Run the OIDC stack from GitHub Actions using the current role.
+5. Terraform updates the same role's trust policy and attached policies in place.
+
+This works because the module attaches three categories of permissions to the role:
+
+- state management permissions for the Terraform backend
+- defined AWS access from `allowed_role_actions` and `allowed_role_resources`
+- role-management permissions so the role can update its own IAM role and policy resources
+
 ---
 
 ## 📋 Requirements
 
-The OIDC provider must exist in your AWS account. Terraform will pull it in using the following data block:
+The GitHub OIDC provider must already exist in your AWS account. This module looks it up; it does not create it.
+
+It also expects the Terraform state backend resources to already exist.
+
+Terraform pulls in the OIDC provider using:
 
 ```hcl
 locals {
@@ -55,6 +93,8 @@ module "github-oidc-role" {
 }
 ```
 
+After the initial bootstrap, this module can usually be applied by the same GitHub Actions role it created.
+
 ### ▶️ More Terraform Module Examples
 
 Additional working examples live in `examples/` so they can be validated in CI:
@@ -69,6 +109,8 @@ Additional working examples live in `examples/` so they can be validated in CI:
 ---
 
 ### 🧱 Terragrunt Configuration
+
+This is the common self-managing pattern: define the OIDC role in infra, then let GitHub Actions assume that role to apply later changes to the same stack.
 
 ```hcl
 locals {
@@ -202,28 +244,33 @@ inputs = {
 ## 🤖 GitHub Action Example
 
 ```yaml
-name: Deploy Environment
+name: Apply OIDC Role
 
 on:
-  workflow_call:
+  push:
+    paths:
+      - "infra/live/**/aws/oidc/**"
+      - "infra/modules/aws/_shared/oidc/**"
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  deploy:
+  apply-oidc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/your_deploy_role_name
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/your_oidc_role_name
           aws-region: ${{ vars.AWS_REGION }}
-      - name: deploy
+      - name: apply oidc stack
         run: terraform apply -auto-approve
 ```
+
+The key point is that the workflow above can use the existing OIDC role to apply changes to that same role's configuration.
 
 ---
 

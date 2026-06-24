@@ -25,20 +25,31 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
-  terraform-validate:
+  validate-matrix:
     runs-on: ubuntu-latest
     needs: terraform-fmt
+    outputs:
+      working_directories: ${{ steps.directories.outputs.working_directories }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup just
+        uses: extractions/setup-just@v3
+
+      - name: Build validate directory matrix
+        id: directories
+        run: |
+          working_directories="$(just validate_dirs)"
+          echo "working_directories=$working_directories" >> "$GITHUB_OUTPUT"
+
+  terraform-validate:
+    runs-on: ubuntu-latest
+    needs: validate-matrix
     strategy:
       fail-fast: false
       matrix:
-        working_directory:
-          - .
-          - examples/dynamodb
-          - examples/s3
-          - examples/environment-dynamodb
-          - examples/tag-only
-          - examples/deployments
-          - examples/combined
+        working_directory: ${{ fromJson(needs.validate-matrix.outputs.working_directories) }}
     defaults:
       run:
         working-directory: ${{ matrix.working_directory }}
