@@ -77,7 +77,8 @@ data "aws_s3_bucket" "tf_state_bucket" {
 }
 
 data "aws_dynamodb_table" "tf_lock_table" {
-  name = var.state_lock_table
+  count = local.uses_dynamodb_locking ? 1 : 0
+  name  = var.state_lock_table
 }
 
 data "aws_iam_policy_document" "state_management" {
@@ -90,11 +91,15 @@ data "aws_iam_policy_document" "state_management" {
     ]
   }
 
-  statement {
-    sid     = "AllowDynamodbLockManagemnt"
-    actions = local.dyanamodb_state_actions
-    resources = [
-      data.aws_dynamodb_table.tf_lock_table.arn
-    ]
+  dynamic "statement" {
+    for_each = local.uses_dynamodb_locking ? [1] : []
+
+    content {
+      sid     = "AllowDynamodbLockManagemnt"
+      actions = local.dyanamodb_state_actions
+      resources = [
+        data.aws_dynamodb_table.tf_lock_table[0].arn
+      ]
+    }
   }
 }

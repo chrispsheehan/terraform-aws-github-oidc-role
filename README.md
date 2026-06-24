@@ -41,11 +41,13 @@ module "github-oidc-role" {
 
   deploy_role_name = "your_deploy_role_name"
   state_bucket     = "700011111111-eu-west-2-project-deploy-tfstate"
-  state_lock_table = "project-deploy-tf-lockid"
   github_repo      = "chrisheehan/project"
 
   allowed_role_actions   = ["s3:*"]
   allowed_role_resources = ["*"]
+
+  state_locking_mode = "dynamodb"
+  state_lock_table   = "project-deploy-tf-lockid"
 
   deploy_branches     = ["main"]
   deploy_tags         = ["*"]
@@ -56,6 +58,70 @@ module "github-oidc-role" {
 ---
 
 ### 🧱 Terragrunt Configuration
+
+```hcl
+locals {
+  git_remote   = run_cmd("--terragrunt-quiet", "git", "remote", "get-url", "origin")
+  github_repo  = regex("[/:]([-0-9_A-Za-z]*/[-0-9_A-Za-z]*)[^/]*$", local.git_remote)[0]
+  project_name = replace(local.github_repo, "/", "-")
+
+  aws_account_id = get_aws_account_id()
+  aws_region     = "eu-west-2"
+
+  deploy_role_name = "${local.project_name}-github-oidc-role"
+  state_bucket     = "${local.aws_account_id}-${local.aws_region}-${local.project_name}-tfstate"
+  state_key        = "${local.project_name}/terraform.tfstate"
+  state_lock_table = "${local.project_name}-tf-lockid"
+}
+
+generate "backend" {
+  path      = "backend.tf"
+  if_exists = "skip"
+  contents  = <<EOF
+terraform {
+  backend "s3" {}
+}
+EOF
+}
+
+generate "aws_provider" {
+  path      = "provider_aws.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+provider "aws" {
+  region              = "${local.aws_region}"
+  allowed_account_ids = ["${local.aws_account_id}"]
+}
+EOF
+}
+
+remote_state {
+  backend = "s3"
+  config = {
+    bucket         = local.state_bucket
+    key            = local.state_key
+    region         = local.aws_region
+    use_lockfile   = true
+    encrypt        = true
+  }
+}
+
+terraform {
+  source = "tfr:///chrispsheehan/github-oidc-role/aws?version=0.2.1"
+}
+
+inputs = {
+  aws_region           = local.aws_region
+  state_bucket         = local.state_bucket
+  state_locking_mode   = "s3_lockfile"
+  allowed_role_actions = ["s3:*"]
+  deploy_branches      = ["main"]
+  deploy_role_name     = local.deploy_role_name
+  github_repo          = local.github_repo
+}
+```
+
+### 🧱 Terragrunt Configuration With DynamoDB Locking
 
 ```hcl
 locals {
@@ -111,6 +177,7 @@ terraform {
 inputs = {
   aws_region           = local.aws_region
   state_bucket         = local.state_bucket
+  state_locking_mode   = "dynamodb"
   state_lock_table     = local.state_lock_table
   allowed_role_actions = ["s3:*"]
   deploy_branches      = ["main"]

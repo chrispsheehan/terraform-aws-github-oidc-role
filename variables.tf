@@ -13,9 +13,30 @@ variable "state_bucket" {
   type        = string
 }
 
-variable "state_lock_table" {
-  description = "Name of dynamo db terraform state lock table - used to allow state locking in ci deployments"
+variable "state_locking_mode" {
+  description = "Terraform state locking mode. Use `dynamodb` for a DynamoDB lock table or `s3_lockfile` for the S3 backend `use_lockfile = true` mode."
   type        = string
+  default     = "dynamodb"
+
+  validation {
+    condition     = contains(["dynamodb", "s3_lockfile"], var.state_locking_mode)
+    error_message = "state_locking_mode must be one of: dynamodb, s3_lockfile."
+  }
+}
+
+variable "state_lock_table" {
+  description = "Name of dynamodb terraform state lock table. Required when `state_locking_mode = \"dynamodb\"`."
+  type        = string
+  default     = null
+  nullable    = true
+
+  validation {
+    condition = (
+      var.state_locking_mode != "dynamodb" ||
+      (var.state_lock_table != null && trim(var.state_lock_table) != "")
+    )
+    error_message = "state_lock_table must be set when state_locking_mode is `dynamodb`."
+  }
 }
 
 variable "deploy_branches" {

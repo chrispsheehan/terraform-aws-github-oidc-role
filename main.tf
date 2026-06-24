@@ -43,7 +43,7 @@ resource "aws_iam_role_policy_attachment" "state_management" {
 }
 
 resource "aws_iam_policy" "state_management" {
-  description = "Access to s3 and dynamodb to allow for state management in ci"
+  description = "Access to Terraform state storage and locking resources in CI"
   name        = local.state_management_policy_name
   policy      = data.aws_iam_policy_document.state_management.json
 }
