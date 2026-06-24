@@ -226,10 +226,7 @@ This repo validates the root module and both locking-mode examples in CI:
 Run the same checks locally with:
 
 ```sh
-terraform fmt -check -recursive
+cd examples/s3-lockfile
 terraform init -backend=false
 terraform validate
-
-(cd examples/dynamodb && terraform init -backend=false && terraform validate)
-(cd examples/s3-lockfile && terraform init -backend=false && terraform validate)
 ```
