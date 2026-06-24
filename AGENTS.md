@@ -6,12 +6,12 @@ This repository contains a reusable Terraform module for creating a GitHub Actio
 
 Agent work in this repo should preserve the module's public contract unless the user explicitly asks for a breaking change.
 
-## Current Module Contract
+## Source Of Truth
 
-- `state_locking_mode` valid values are `"dynamodb"` and `"s3"`.
-- `"s3_lockfile"` is obsolete and should not be reintroduced in code, examples, tests, or docs.
-- `state_lock_table` is required when `state_locking_mode = "dynamodb"`.
-- The module looks up an existing GitHub OIDC provider in the target AWS account. It does not create that provider.
+- Prefer reading the Terraform source directly instead of restating the module contract here.
+- The repo is small enough that reading `variables.tf`, `locals.tf`, `data.tf`, `main.tf`, `outputs.tf`, `examples/`, and `module.tftest.hcl` is cheap and should be the default.
+- Treat the Terraform files, tests, and runnable examples as the source of truth for current behavior.
+- Use this file for workflow guidance and repo conventions, not for copying details that already live in code.
 
 ## Examples And Tests
 
