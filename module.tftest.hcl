@@ -37,35 +37,6 @@ override_data {
   }
 }
 
-override_data {
-  target = module.github_oidc_role.data.aws_caller_identity.this
-  values = {
-    account_id = "123456789012"
-  }
-}
-
-override_data {
-  target = module.github_oidc_role.data.aws_iam_openid_connect_provider.this
-  values = {
-    arn            = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
-    client_id_list = ["sts.amazonaws.com"]
-  }
-}
-
-override_data {
-  target = module.github_oidc_role.data.aws_s3_bucket.tf_state_bucket
-  values = {
-    arn = "arn:aws:s3:::example-terraform-state-bucket"
-  }
-}
-
-override_data {
-  target = module.github_oidc_role.data.aws_dynamodb_table.tf_lock_table[0]
-  values = {
-    arn = "arn:aws:dynamodb:eu-west-2:123456789012:table/example-terraform-lock-table"
-  }
-}
-
 run "dynamodb_locking_plan" {
   command = plan
 
