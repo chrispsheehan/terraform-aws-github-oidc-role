@@ -79,6 +79,13 @@ data "aws_s3_bucket" "tf_state_bucket" {
 data "aws_dynamodb_table" "tf_lock_table" {
   count = local.uses_dynamodb_locking ? 1 : 0
   name  = var.state_lock_table
+
+  lifecycle {
+    precondition {
+      condition     = var.state_lock_table != null && trim(var.state_lock_table) != ""
+      error_message = "State lock table must be set when state locking mode is \"dynamodb\"."
+    }
+  }
 }
 
 data "aws_iam_policy_document" "state_management" {
@@ -95,8 +102,8 @@ data "aws_iam_policy_document" "state_management" {
     for_each = local.uses_dynamodb_locking ? [1] : []
 
     content {
-      sid     = "AllowDynamodbLockManagemnt"
-      actions = local.dyanamodb_state_actions
+      sid     = "AllowDynamoDBLockManagement"
+      actions = local.dynamodb_state_actions
       resources = [
         data.aws_dynamodb_table.tf_lock_table[0].arn
       ]

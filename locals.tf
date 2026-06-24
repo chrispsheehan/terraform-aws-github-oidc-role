@@ -28,7 +28,7 @@ locals {
     "s3:PutObject",
     "s3:DeleteObject",
   ]
-  dyanamodb_state_actions = local.uses_dynamodb_locking ? [
+  dynamodb_state_actions = local.uses_dynamodb_locking ? [
     "dynamodb:ListTables",
     "dynamodb:DescribeTable",
     "dynamodb:GetItem",
