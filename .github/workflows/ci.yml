@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  terraform:
+  terraform-fmt:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -19,10 +19,31 @@ jobs:
           terraform_version: '1.1.7'
 
       - name: Terraform Format Check
-        run: terraform fmt -check
+        run: terraform fmt -check -recursive
+
+  terraform-validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        working_directory:
+          - .
+          - examples/dynamodb
+          - examples/s3-lockfile
+    defaults:
+      run:
+        working-directory: ${{ matrix.working_directory }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.1.7'
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -backend=false
 
       - name: Terraform Validate
         run: terraform validate

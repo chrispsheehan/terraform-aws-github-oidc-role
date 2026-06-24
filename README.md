@@ -213,3 +213,23 @@ jobs:
       - name: deploy
         run: terraform apply -auto-approve
 ```
+
+---
+
+## 🧪 Testing
+
+This repo validates the root module and both locking-mode examples in CI:
+
+- `examples/dynamodb`
+- `examples/s3-lockfile`
+
+Run the same checks locally with:
+
+```sh
+terraform fmt -check -recursive
+terraform init -backend=false
+terraform validate
+
+(cd examples/dynamodb && terraform init -backend=false && terraform validate)
+(cd examples/s3-lockfile && terraform init -backend=false && terraform validate)
+```
