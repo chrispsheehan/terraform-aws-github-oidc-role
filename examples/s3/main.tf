@@ -5,7 +5,7 @@ module "github_oidc_role" {
   github_repo      = "octo-org/octo-repo"
   state_bucket     = "example-terraform-state-bucket"
 
-  state_locking_mode = "s3_lockfile"
+  state_locking_mode = "s3"
 
   deploy_branches = ["main"]
 }

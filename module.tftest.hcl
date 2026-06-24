@@ -60,26 +60,26 @@ run "dynamodb_locking_plan" {
   }
 }
 
-run "s3_lockfile_plan" {
+run "s3_locking_plan" {
   command = plan
 
   variables {
     deploy_role_name   = "example-github-oidc-role"
     github_repo        = "octo-org/octo-repo"
     state_bucket       = "example-terraform-state-bucket"
-    state_locking_mode = "s3_lockfile"
+    state_locking_mode = "s3"
     state_lock_table   = null
     deploy_branches    = ["main"]
   }
 
   assert {
     condition     = !local.uses_dynamodb_locking
-    error_message = "Expected S3 lockfile mode to disable DynamoDB locking."
+    error_message = "Expected S3 locking mode to disable DynamoDB locking."
   }
 
   assert {
     condition     = length(regexall("dynamodb:", data.aws_iam_policy_document.state_management.json)) == 0
-    error_message = "Expected state management policy to exclude DynamoDB permissions in S3 lockfile mode."
+    error_message = "Expected state management policy to exclude DynamoDB permissions in S3 locking mode."
   }
 }
 
@@ -114,7 +114,7 @@ run "tag_subject_plan" {
     deploy_role_name     = "example-github-oidc-role"
     github_repo          = "octo-org/octo-repo"
     state_bucket         = "example-terraform-state-bucket"
-    state_locking_mode   = "s3_lockfile"
+    state_locking_mode   = "s3"
     deploy_tags          = ["v*"]
     allowed_role_actions = ["ecr:*", "ecs:*"]
   }
@@ -137,7 +137,7 @@ run "deployment_subject_plan" {
     deploy_role_name     = "example-github-oidc-role"
     github_repo          = "octo-org/octo-repo"
     state_bucket         = "example-terraform-state-bucket"
-    state_locking_mode   = "s3_lockfile"
+    state_locking_mode   = "s3"
     allow_deployments    = true
     allowed_role_actions = ["codedeploy:*", "s3:*"]
   }

@@ -14,13 +14,13 @@ variable "state_bucket" {
 }
 
 variable "state_locking_mode" {
-  description = "Terraform state locking mode. Use `dynamodb` for a DynamoDB lock table or `s3_lockfile` for the S3 backend `use_lockfile = true` mode."
+  description = "Terraform state locking mode. Use `dynamodb` for a DynamoDB lock table or `s3` for the S3 backend `use_lockfile = true` mode."
   type        = string
   default     = "dynamodb"
 
   validation {
-    condition     = contains(["dynamodb", "s3_lockfile"], var.state_locking_mode)
-    error_message = "State locking mode must be either \"dynamodb\" or \"s3_lockfile\"."
+    condition     = contains(["dynamodb", "s3"], var.state_locking_mode)
+    error_message = "State locking mode must be either \"dynamodb\" or \"s3\"."
   }
 }
 

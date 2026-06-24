@@ -34,7 +34,7 @@ jobs:
         working_directory:
           - .
           - examples/dynamodb
-          - examples/s3-lockfile
+          - examples/s3
           - examples/environment-dynamodb
           - examples/tag-only
           - examples/deployments

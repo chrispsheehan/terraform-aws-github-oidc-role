@@ -60,7 +60,7 @@ module "github-oidc-role" {
 Additional working examples live in `examples/` so they can be validated in CI:
 
 - `examples/dynamodb`
-- `examples/s3-lockfile`
+- `examples/s3`
 - `examples/environment-dynamodb`
 - `examples/tag-only`
 - `examples/deployments`
@@ -124,7 +124,7 @@ terraform {
 inputs = {
   aws_region           = local.aws_region
   state_bucket         = local.state_bucket
-  state_locking_mode   = "s3_lockfile"
+  state_locking_mode   = "s3"
   allowed_role_actions = ["s3:*"]
   deploy_branches      = ["main"]
   deploy_role_name     = local.deploy_role_name
@@ -232,7 +232,7 @@ jobs:
 This repo validates the root module and all example configurations in CI:
 
 - `examples/dynamodb`
-- `examples/s3-lockfile`
+- `examples/s3`
 - `examples/environment-dynamodb`
 - `examples/tag-only`
 - `examples/deployments`
@@ -243,7 +243,7 @@ It also runs `terraform test` on Terraform `1.7+` with overridden AWS data sourc
 Run the same checks locally with:
 
 ```sh
-cd examples/s3-lockfile
+cd examples/s3
 terraform init -backend=false
 terraform validate
 ```
