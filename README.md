@@ -1,6 +1,6 @@
 # 🚀 terraform-aws-github-oidc-role
 
-Creates an **OIDC-enabled AWS IAM role** for GitHub Actions that can also **update its own OIDC configuration and attached policies**.
+Creates an **OIDC-enabled AWS IAM role** for GitHub Actions that can also **update its own trust policy and attached IAM policies**.
 
 The important behavior of this module is not just that it creates a role for CI. It creates a role that can:
 
@@ -164,7 +164,6 @@ terraform {
 }
 
 inputs = {
-  aws_region           = local.aws_region
   state_bucket         = local.state_bucket
   state_locking_mode   = "s3"
   allowed_role_actions = ["s3:*"]
@@ -228,7 +227,6 @@ terraform {
 }
 
 inputs = {
-  aws_region           = local.aws_region
   state_bucket         = local.state_bucket
   state_locking_mode   = "dynamodb"
   state_lock_table     = local.state_lock_table
@@ -249,8 +247,8 @@ name: Apply OIDC Role
 on:
   push:
     paths:
-      - "infra/live/**/aws/oidc/**"
-      - "infra/modules/aws/_shared/oidc/**"
+      - "path/to/your/oidc-stack/**"
+      - "path/to/your/shared/oidc-module/**"
 
 permissions:
   id-token: write
@@ -267,7 +265,9 @@ jobs:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/your_oidc_role_name
           aws-region: ${{ vars.AWS_REGION }}
       - name: apply oidc stack
-        run: terraform apply -auto-approve
+        run: |
+          terraform init
+          terraform apply -auto-approve
 ```
 
 The key point is that the workflow above can use the existing OIDC role to apply changes to that same role's configuration.
@@ -276,14 +276,15 @@ The key point is that the workflow above can use the existing OIDC role to apply
 
 ## 🧪 Testing
 
-This repo validates the root module and all example configurations in CI:
+This repo validates the root module and all runnable example configurations in CI.
 
-- `examples/dynamodb`
-- `examples/s3`
-- `examples/environment-dynamodb`
-- `examples/tag-only`
-- `examples/deployments`
-- `examples/combined`
+Example validation targets are derived dynamically from:
+
+```sh
+just validate_dirs
+```
+
+That command currently returns the root module plus all example directories with a `main.tf`.
 
 It also runs `terraform test` on Terraform `1.7+` with overridden AWS data sources, so the module gets a plan-based behavior test path without real AWS credentials. This does not change the module's runtime Terraform requirement for consumers.
 
@@ -293,6 +294,12 @@ Run the same checks locally with:
 cd examples/s3
 terraform init -backend=false
 terraform validate
+```
+
+To print the current example directory list locally:
+
+```sh
+just example_dirs
 ```
 
 To run the module behavior tests locally:

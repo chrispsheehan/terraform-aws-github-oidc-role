@@ -14,3 +14,10 @@ example_dirs:
 validate_dirs:
   @find examples -mindepth 2 -maxdepth 2 -type f -name main.tf | sort | \
     sed 's#/main.tf$##' | jq -R . | jq -sc '["."] + .'
+
+format:
+  terraform fmt -recursive
+
+test:
+  terraform init -backend=false
+  terraform test
