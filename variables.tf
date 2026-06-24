@@ -29,14 +29,6 @@ variable "state_lock_table" {
   type        = string
   default     = null
   nullable    = true
-
-  validation {
-    condition = (
-      var.state_locking_mode != "dynamodb" ||
-      (var.state_lock_table != null && trim(var.state_lock_table) != "")
-    )
-    error_message = "state_lock_table must be set when state_locking_mode is `dynamodb`."
-  }
 }
 
 variable "deploy_branches" {

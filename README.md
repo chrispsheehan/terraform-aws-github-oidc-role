@@ -223,10 +223,25 @@ This repo validates the root module and both locking-mode examples in CI:
 - `examples/dynamodb`
 - `examples/s3-lockfile`
 
+It also runs `terraform test` on Terraform `1.7+` with overridden AWS data sources, so the module gets a plan-based behavior test path without real AWS credentials. This does not change the module's runtime Terraform requirement for consumers.
+
 Run the same checks locally with:
 
 ```sh
 cd examples/s3-lockfile
 terraform init -backend=false
 terraform validate
+```
+
+To run the module behavior tests locally:
+
+```sh
+terraform test
+```
+
+To run the same tests via Docker:
+
+```sh
+docker run --rm --entrypoint sh -v "$PWD":/workspace -w /workspace hashicorp/terraform:1.7.5 -lc \
+  "terraform init -backend=false && terraform test"
 ```
