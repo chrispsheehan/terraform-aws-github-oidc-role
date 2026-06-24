@@ -65,5 +65,8 @@ jobs:
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
+      - name: Terraform init
+        run: terraform init -backend=false
+
       - name: Terraform Test
         run: terraform test
