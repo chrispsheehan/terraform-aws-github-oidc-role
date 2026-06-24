@@ -20,7 +20,7 @@ variable "state_locking_mode" {
 
   validation {
     condition     = contains(["dynamodb", "s3_lockfile"], var.state_locking_mode)
-    error_message = "state_locking_mode must be one of: dynamodb, s3_lockfile."
+    error_message = "State locking mode must be either \"dynamodb\" or \"s3_lockfile\"."
   }
 }
 
