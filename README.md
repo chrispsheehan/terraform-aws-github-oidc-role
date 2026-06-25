@@ -33,6 +33,7 @@ Before using this module, ensure the following already exist in your AWS account
 ```hcl
 module "github-oidc-role" {
   source  = "chrispsheehan/github-oidc-role/aws"
+  version = "1.0.1"
 
   deploy_role_name = "your_deploy_role_name"
   state_bucket     = "700011111111-eu-west-2-project-deploy-tfstate"
