@@ -41,6 +41,23 @@ jobs:
           done
           echo "::error::❌ PR title must start with one of: $ALLOWED_PREFIXES"
           exit 1
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Execute get-release-version action
+        id: get_next_version
+        uses: chrispsheehan/get-release-version@v1
+        with:
+          subjects: ${{ github.event.pull_request.title || inputs.pr_title }}
+
+      - name: Show action outputs
+        run: |
+          echo "currentVersion=${{ steps.get_next_version.outputs.currentVersion }}"
+          echo "version=${{ steps.get_next_version.outputs.version }}"
+          echo "createNewTag=${{ steps.get_next_version.outputs.createNewTag }}"
+          echo "createNewRelease=${{ steps.get_next_version.outputs.createNewRelease }}"
+          echo "bump=${{ steps.get_next_version.outputs.bump }}"
 
   format:
     runs-on: ubuntu-latest
