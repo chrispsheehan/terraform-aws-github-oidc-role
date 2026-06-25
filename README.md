@@ -1,38 +1,31 @@
-# 🚀 terraform-aws-github-oidc-role
+# terraform-aws-github-oidc-role
 
-Creates a least-privilege OIDC-enabled AWS IAM role for GitHub Actions.
+Creates a least-privilege AWS IAM role for GitHub Actions using OIDC.
 
-## 🔁 Self-Updating
+Bootstrap it once locally, then let GitHub Actions apply future changes by assuming the same role this module created.
 
-Bootstrap it once locally and then leave CI to manage further changes!
+## Behavior
 
-That means you can change the role privileges in your repo, push the change, and let the current OIDC role apply the next version of itself. Wonderful :).
+- Branches take top priority. If a branch is allowed, it overrides everything else.
+- Environments are fallback. If a branch is not allowed, but the environment is, the workflow can run.
+- Tags enable deployments from versioned releases if neither branch nor environment is explicitly allowed.
+- `allow_deployments` acts as a global override. If enabled, any workflow can assume the role.
+- IAM permissions from `allowed_role_actions` and `allowed_role_resources` control AWS access.
+- The role can update its own IAM permissions when assuming the role dynamically.
 
-## 🔐 Priority Logic
-
-- 🥇 **Branches take top priority** — if a branch is allowed, it overrides everything else.
-- 🌱 **Environments are fallback** — if a branch is _not_ allowed, but the environment is, the workflow can run.
-- 🏷️ **Tags** enable deployments from versioned releases if neither branch nor environment is explicitly allowed.
-- ⚙️ **`allow_deployments`** acts as a global override — if enabled, _any_ workflow can assume the role.
-- 🔑 IAM permissions (`allowed_role_actions`, `allowed_role_resources`) control AWS access.
-- ✍️ IAM permissions can be updated when assuming the role dynamically.
-
----
-
-## 📋 Requirements
+## Requirements
 
 Before using this module, ensure the following already exist in your AWS account:
 
 - A GitHub Actions OIDC provider (`token.actions.githubusercontent.com`). Verify it in the AWS Console: **IAM → Identity providers**.
 - The Terraform backend resources (for example, the S3 bucket and DynamoDB lock table).
 
----
-
-## ⚙️ Usage
+## Usage
 
 ```hcl
 module "github-oidc-role" {
   source  = "chrispsheehan/github-oidc-role/aws"
+  version = "1.0.1"
 
   deploy_role_name = "your_deploy_role_name"
   state_bucket     = "700011111111-eu-west-2-project-deploy-tfstate"
@@ -52,11 +45,20 @@ module "github-oidc-role" {
 
 After the initial bootstrap, this module can usually be applied by the same GitHub Actions role it created.
 
-Additional working examples live in `examples/` so they can be validated in CI:
+## Examples
 
----
+- [`examples/combined`](examples/combined)
+- [`examples/deployments`](examples/deployments)
+- [`examples/dynamodb`](examples/dynamodb)
+- [`examples/environment-dynamodb`](examples/environment-dynamodb)
+- [`examples/s3`](examples/s3)
+- [`examples/tag-only`](examples/tag-only)
 
-## 🤖 GitHub Action Example
+## Outputs
+
+- `role_arn`: ARN of the IAM role created by the module.
+
+## GitHub Actions Example
 
 ```yaml
 name: Apply OIDC Role
@@ -87,9 +89,7 @@ jobs:
           terraform apply -auto-approve
 ```
 
----
-
-## 🧪 Testing
+## Testing
 
 This repo validates the root module and all runnable example configurations in CI.
 
