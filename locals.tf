@@ -1,5 +1,6 @@
 locals {
-  oidc_domain = "token.actions.githubusercontent.com"
+  oidc_domain           = "token.actions.githubusercontent.com"
+  uses_dynamodb_locking = var.state_locking_mode == "dynamodb"
 
   repo_branch_refs  = [for ref in var.deploy_branches : format("repo:%s:ref:refs/heads/%s", var.github_repo, ref)]
   repo_tag_refs     = [for ref in var.deploy_tags : format("repo:%s:ref:refs/tags/%s", var.github_repo, ref)]
@@ -27,7 +28,7 @@ locals {
     "s3:PutObject",
     "s3:DeleteObject",
   ]
-  dyanamodb_state_actions = [
+  dynamodb_state_actions = local.uses_dynamodb_locking ? [
     "dynamodb:ListTables",
     "dynamodb:DescribeTable",
     "dynamodb:GetItem",
@@ -36,7 +37,7 @@ locals {
     "dynamodb:DescribeContinuousBackups",
     "dynamodb:DescribeTimeToLive",
     "dynamodb:ListTagsOfResource"
-  ]
+  ] : []
   oidc_management_actions = [
     "iam:GetOpenIDConnectProvider"
   ]

@@ -1,6 +1,12 @@
 # 🚀 terraform-aws-github-oidc-role
 
-Creates an **OIDC-enabled AWS IAM role** to be used via the [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials) GitHub Action.
+Creates a least-privilege OIDC-enabled AWS IAM role for GitHub Actions.
+
+## 🔁 Self-Updating
+
+Bootstrap it once locally and then leave CI to manage further changes!
+
+That means you can change the role privileges in your repo, push the change, and let the current OIDC role apply the next version of itself. Wonderful :).
 
 ## 🔐 Priority Logic
 
@@ -15,25 +21,14 @@ Creates an **OIDC-enabled AWS IAM role** to be used via the [aws-actions/configu
 
 ## 📋 Requirements
 
-The OIDC provider must exist in your AWS account. Terraform will pull it in using the following data block:
+Before using this module, ensure the following already exist in your AWS account:
 
-```hcl
-locals {
-  oidc_domain = "token.actions.githubusercontent.com"
-}
-
-data "aws_caller_identity" "this" {}
-
-data "aws_iam_openid_connect_provider" "this" {
-  arn = "arn:aws:iam::${data.aws_caller_identity.this.account_id}:oidc-provider/${local.oidc_domain}"
-}
-```
+- A GitHub Actions OIDC provider (`token.actions.githubusercontent.com`). Verify it in the AWS Console: **IAM → Identity providers**.
+- The Terraform backend resources (for example, the S3 bucket and DynamoDB lock table).
 
 ---
 
 ## ⚙️ Usage
-
-### ▶️ Terraform Module
 
 ```hcl
 module "github-oidc-role" {
@@ -41,11 +36,13 @@ module "github-oidc-role" {
 
   deploy_role_name = "your_deploy_role_name"
   state_bucket     = "700011111111-eu-west-2-project-deploy-tfstate"
-  state_lock_table = "project-deploy-tf-lockid"
-  github_repo      = "chrisheehan/project"
+  github_repo      = "chrispsheehan/project"
 
   allowed_role_actions   = ["s3:*"]
   allowed_role_resources = ["*"]
+
+  state_locking_mode = "s3"
+  state_lock_table   = "project-deploy-tf-lockid"
 
   deploy_branches     = ["main"]
   deploy_tags         = ["*"]
@@ -53,96 +50,58 @@ module "github-oidc-role" {
 }
 ```
 
----
+After the initial bootstrap, this module can usually be applied by the same GitHub Actions role it created.
 
-### 🧱 Terragrunt Configuration
-
-```hcl
-locals {
-  git_remote   = run_cmd("--terragrunt-quiet", "git", "remote", "get-url", "origin")
-  github_repo  = regex("[/:]([-0-9_A-Za-z]*/[-0-9_A-Za-z]*)[^/]*$", local.git_remote)[0]
-  project_name = replace(local.github_repo, "/", "-")
-
-  aws_account_id = get_aws_account_id()
-  aws_region     = "eu-west-2"
-
-  deploy_role_name = "${local.project_name}-github-oidc-role"
-  state_bucket     = "${local.aws_account_id}-${local.aws_region}-${local.project_name}-tfstate"
-  state_key        = "${local.project_name}/terraform.tfstate"
-  state_lock_table = "${local.project_name}-tf-lockid"
-}
-
-generate "backend" {
-  path      = "backend.tf"
-  if_exists = "skip"
-  contents  = <<EOF
-terraform {
-  backend "s3" {}
-}
-EOF
-}
-
-generate "aws_provider" {
-  path      = "provider_aws.tf"
-  if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-provider "aws" {
-  region              = "${local.aws_region}"
-  allowed_account_ids = ["${local.aws_account_id}"]
-}
-EOF
-}
-
-remote_state {
-  backend = "s3"
-  config = {
-    bucket         = local.state_bucket
-    key            = local.state_key
-    region         = local.aws_region
-    dynamodb_table = local.state_lock_table
-    encrypt        = true
-  }
-}
-
-terraform {
-  source = "tfr:///chrispsheehan/github-oidc-role/aws?version=0.2.1"
-}
-
-inputs = {
-  aws_region           = local.aws_region
-  state_bucket         = local.state_bucket
-  state_lock_table     = local.state_lock_table
-  allowed_role_actions = ["s3:*"]
-  deploy_branches      = ["main"]
-  deploy_role_name     = local.deploy_role_name
-  github_repo          = local.github_repo
-}
-```
+Additional working examples live in `examples/` so they can be validated in CI:
 
 ---
 
 ## 🤖 GitHub Action Example
 
 ```yaml
-name: Deploy Environment
+name: Apply OIDC Role
 
 on:
-  workflow_call:
+  push:
+    paths:
+      - "path/to/your/oidc-stack/**"
+      - "path/to/your/shared/oidc-module/**"
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  deploy:
+  apply-oidc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: actions/checkout@v6
+      - uses: hashicorp/setup-terraform@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/your_deploy_role_name
           aws-region: ${{ vars.AWS_REGION }}
-      - name: deploy
-        run: terraform apply -auto-approve
+      - name: Apply OIDC stack
+        run: |
+          terraform init
+          terraform apply -auto-approve
+```
+
+---
+
+## 🧪 Testing
+
+This repo validates the root module and all runnable example configurations in CI.
+
+To run the module behavior tests locally:
+
+```sh
+terraform test
+```
+
+To run the same tests via Docker:
+
+```sh
+docker run --rm --entrypoint sh -v "$PWD":/workspace -w /workspace hashicorp/terraform:1.7.5 -lc \
+  "terraform init -backend=false && terraform test"
 ```
