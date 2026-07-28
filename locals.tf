@@ -1,12 +1,24 @@
 locals {
   oidc_domain           = "token.actions.githubusercontent.com"
   uses_dynamodb_locking = var.state_locking_mode == "dynamodb"
+  repo_owner            = split("/", var.github_repo)[0]
+  repo_name             = split("/", var.github_repo)[1]
 
   repo_branch_refs  = [for ref in var.deploy_branches : format("repo:%s:ref:refs/heads/%s", var.github_repo, ref)]
+  repo_branch_refs_with_ids = [
+    for ref in var.deploy_branches :
+    format("repo:%s@*/%s@*:ref:refs/heads/%s", local.repo_owner, local.repo_name, ref)
+  ]
   repo_tag_refs     = [for ref in var.deploy_tags : format("repo:%s:ref:refs/tags/%s", var.github_repo, ref)]
   repo_environments = [for ref in var.deploy_environments : format("repo:%s:environment:%s", var.github_repo, ref)]
   repo_deployments  = var.allow_deployments ? [format("repo:%s:deployment", var.github_repo)] : []
-  repo_subjects     = concat(local.repo_branch_refs, local.repo_tag_refs, local.repo_environments, local.repo_deployments)
+  repo_subjects = concat(
+    local.repo_branch_refs,
+    local.repo_branch_refs_with_ids,
+    local.repo_tag_refs,
+    local.repo_environments,
+    local.repo_deployments,
+  )
 
   assume_identity_policy_name  = "${var.deploy_role_name}-assume-oidc-role"
   state_management_policy_name = "${var.deploy_role_name}-state-management"

@@ -58,6 +58,18 @@ After the initial bootstrap, this module can usually be applied by the same GitH
 
 - `role_arn`: ARN of the IAM role created by the module.
 
+## GitHub OIDC Subject Matching
+
+The trust policy matches allowed GitHub OIDC `sub` claims with `StringLike`.
+
+This module accepts both of these branch subject shapes:
+
+- `repo:<owner>/<repo>:ref:refs/heads/<branch>`
+- `repo:<owner>@<owner_id>/<repo>@<repo_id>:ref:refs/heads/<branch>`
+
+The second format reflects current GitHub OIDC tokens that include stable
+numeric owner and repository ids in the `sub` claim.
+
 ## GitHub Actions Example
 
 ```yaml

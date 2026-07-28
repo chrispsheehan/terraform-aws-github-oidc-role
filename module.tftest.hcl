@@ -175,8 +175,18 @@ run "combined_subjects_plan" {
   }
 
   assert {
+    condition     = contains(local.repo_subjects, "repo:octo-org@*/octo-repo@*:ref:refs/heads/main")
+    error_message = "Expected branch subject with GitHub owner and repo ids to be included."
+  }
+
+  assert {
     condition     = contains(local.repo_subjects, "repo:octo-org/octo-repo:ref:refs/heads/release/*")
     error_message = "Expected wildcard branch subject to be included."
+  }
+
+  assert {
+    condition     = contains(local.repo_subjects, "repo:octo-org@*/octo-repo@*:ref:refs/heads/release/*")
+    error_message = "Expected wildcard branch subject with GitHub owner and repo ids to be included."
   }
 
   assert {
