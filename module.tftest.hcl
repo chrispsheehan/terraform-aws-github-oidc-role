@@ -83,6 +83,27 @@ run "s3_locking_plan" {
   }
 }
 
+run "default_locking_plan" {
+  command = plan
+
+  variables {
+    deploy_role_name = "example-github-oidc-role"
+    github_repo      = "octo-org/octo-repo"
+    state_bucket     = "example-terraform-state-bucket"
+    deploy_branches  = ["main"]
+  }
+
+  assert {
+    condition     = !local.uses_dynamodb_locking
+    error_message = "Expected default state locking mode to use S3 locking."
+  }
+
+  assert {
+    condition     = length(regexall("dynamodb:", data.aws_iam_policy_document.state_management.json)) == 0
+    error_message = "Expected default state management policy to exclude DynamoDB permissions."
+  }
+}
+
 run "environment_subject_plan" {
   command = plan
 

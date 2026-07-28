@@ -34,14 +34,13 @@ module "github-oidc-role" {
   allowed_role_actions   = ["s3:*"]
   allowed_role_resources = ["*"]
 
-  state_locking_mode = "s3"
-  state_lock_table   = "project-deploy-tf-lockid"
-
   deploy_branches     = ["main"]
   deploy_tags         = ["*"]
   deploy_environments = ["dev", "prod"]
 }
 ```
+
+Set `state_locking_mode = "dynamodb"` and provide `state_lock_table` only if you want DynamoDB-based locking instead of the default S3 `use_lockfile = true` mode.
 
 After the initial bootstrap, this module can usually be applied by the same GitHub Actions role it created.
 
