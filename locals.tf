@@ -3,22 +3,22 @@ locals {
   uses_dynamodb_locking = var.state_locking_mode == "dynamodb"
   repo_owner            = split("/", var.github_repo)[0]
   repo_name             = split("/", var.github_repo)[1]
-
-  repo_branch_refs  = [for ref in var.deploy_branches : format("repo:%s:ref:refs/heads/%s", var.github_repo, ref)]
-  repo_branch_refs_with_ids = [
-    for ref in var.deploy_branches :
-    format("repo:%s@*/%s@*:ref:refs/heads/%s", local.repo_owner, local.repo_name, ref)
+  repo_prefixes = [
+    format("repo:%s", var.github_repo),
+    format("repo:%s@*/%s@*", local.repo_owner, local.repo_name),
   ]
-  repo_tag_refs     = [for ref in var.deploy_tags : format("repo:%s:ref:refs/tags/%s", var.github_repo, ref)]
-  repo_environments = [for ref in var.deploy_environments : format("repo:%s:environment:%s", var.github_repo, ref)]
-  repo_deployments  = var.allow_deployments ? [format("repo:%s:deployment", var.github_repo)] : []
-  repo_subjects = concat(
-    local.repo_branch_refs,
-    local.repo_branch_refs_with_ids,
-    local.repo_tag_refs,
-    local.repo_environments,
-    local.repo_deployments,
+  repo_subject_contexts = concat(
+    [for ref in var.deploy_branches : format("ref:refs/heads/%s", ref)],
+    [for ref in var.deploy_tags : format("ref:refs/tags/%s", ref)],
+    [for ref in var.deploy_environments : format("environment:%s", ref)],
+    var.allow_deployments ? ["deployment"] : [],
   )
+  repo_subjects = flatten([
+    for prefix in local.repo_prefixes : [
+      for context in local.repo_subject_contexts :
+      format("%s:%s", prefix, context)
+    ]
+  ])
 
   assume_identity_policy_name  = "${var.deploy_role_name}-assume-oidc-role"
   state_management_policy_name = "${var.deploy_role_name}-state-management"

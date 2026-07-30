@@ -123,6 +123,11 @@ run "environment_subject_plan" {
   }
 
   assert {
+    condition     = contains(local.repo_subjects, "repo:octo-org@*/octo-repo@*:environment:dev")
+    error_message = "Expected environment subject with GitHub owner and repo ids to be included."
+  }
+
+  assert {
     condition     = length(regexall("lambda:\\*", data.aws_iam_policy_document.defined.json)) > 0
     error_message = "Expected defined policy to include Lambda permissions."
   }
@@ -146,6 +151,11 @@ run "tag_subject_plan" {
   }
 
   assert {
+    condition     = contains(local.repo_subjects, "repo:octo-org@*/octo-repo@*:ref:refs/tags/v*")
+    error_message = "Expected tag subject with GitHub owner and repo ids to be included."
+  }
+
+  assert {
     condition     = length(regexall("ecr:\\*", data.aws_iam_policy_document.defined.json)) > 0
     error_message = "Expected defined policy to include ECR permissions."
   }
@@ -166,6 +176,11 @@ run "deployment_subject_plan" {
   assert {
     condition     = contains(local.repo_subjects, "repo:octo-org/octo-repo:deployment")
     error_message = "Expected deployment subject to be included."
+  }
+
+  assert {
+    condition     = contains(local.repo_subjects, "repo:octo-org@*/octo-repo@*:deployment")
+    error_message = "Expected deployment subject with GitHub owner and repo ids to be included."
   }
 
   assert {
@@ -216,12 +231,27 @@ run "combined_subjects_plan" {
   }
 
   assert {
+    condition     = contains(local.repo_subjects, "repo:octo-org@*/octo-repo@*:ref:refs/tags/v*")
+    error_message = "Expected wildcard tag subject with GitHub owner and repo ids to be included."
+  }
+
+  assert {
     condition     = contains(local.repo_subjects, "repo:octo-org/octo-repo:environment:prod")
     error_message = "Expected environment subject to be included."
   }
 
   assert {
+    condition     = contains(local.repo_subjects, "repo:octo-org@*/octo-repo@*:environment:prod")
+    error_message = "Expected environment subject with GitHub owner and repo ids to be included."
+  }
+
+  assert {
     condition     = contains(local.repo_subjects, "repo:octo-org/octo-repo:deployment")
     error_message = "Expected deployment subject to be included."
+  }
+
+  assert {
+    condition     = contains(local.repo_subjects, "repo:octo-org@*/octo-repo@*:deployment")
+    error_message = "Expected deployment subject with GitHub owner and repo ids to be included."
   }
 }

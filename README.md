@@ -66,8 +66,23 @@ This module accepts both of these branch subject shapes:
 - `repo:<owner>/<repo>:ref:refs/heads/<branch>`
 - `repo:<owner>@<owner_id>/<repo>@<repo_id>:ref:refs/heads/<branch>`
 
-The second format reflects current GitHub OIDC tokens that include stable
-numeric owner and repository ids in the `sub` claim.
+It also accepts both of these tag subject shapes:
+
+- `repo:<owner>/<repo>:ref:refs/tags/<tag>`
+- `repo:<owner>@<owner_id>/<repo>@<repo_id>:ref:refs/tags/<tag>`
+
+Both of these environment subject shapes are accepted too:
+
+- `repo:<owner>/<repo>:environment:<environment>`
+- `repo:<owner>@<owner_id>/<repo>@<repo_id>:environment:<environment>`
+
+If `allow_deployments = true`, both deployment subject shapes are accepted:
+
+- `repo:<owner>/<repo>:deployment`
+- `repo:<owner>@<owner_id>/<repo>@<repo_id>:deployment`
+
+The id-qualified formats reflect current GitHub OIDC tokens that include
+stable numeric owner and repository ids in the `sub` claim.
 
 ## GitHub Actions Example
 
